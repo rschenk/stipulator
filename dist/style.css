@@ -1,0 +1,71 @@
+body {
+	margin: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	overflow: hidden;
+}
+
+#stipulator-canvas {
+	box-shadow: 3px 3px 20px 0px rgba(0, 0, 0, 0.15);
+}
+
+.chrome {
+	background: #e7e7e7;
+	color: #777;
+	font-size: 11px;
+	font-family: Droid Sans;
+}
+
+#zoom-chrome {
+	position: absolute;
+	bottom: 0;
+	padding: 0.25em 0.5em;
+	border-radius: 2px 2px 0 0;
+}
+
+#param-chrome {
+	box-sizing: border-box;
+	position: absolute;
+	top: 50%;
+	transform: translateX(0) translateY(-50%);
+	right: 0;
+	width: auto;
+	padding: 0.5em 1em;
+	border: 1px solid #ddd;
+	border-radius: 2px 0 0 2px;
+
+	transition: transform 0.25s
+}
+
+#param-chrome.hidden {
+	transform: translateX(100%) translateY(-50%);
+}
+
+.handle {
+	height: 20px;
+	width: 11px;
+	position: absolute;
+	top: 50%;
+  transform: translateY(-50%);
+	left: -12px;
+	border-radius: 2px 0 0 2px;
+	background: #e7e7e7;
+  background-image: url(handle.svg);
+  background-size: 4px 10px;
+	background-repeat: no-repeat;
+	background-position: 3px center;
+	border: 1px solid #ddd;
+	border-right: none;
+	cursor: pointer;
+}
+
+
+.form-group label {
+	display: block;
+}
+
+.form-group input {
+	width: 5.5em;
+	margin-bottom: 1em;
+}
