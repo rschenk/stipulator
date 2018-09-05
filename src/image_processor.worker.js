@@ -1,12 +1,18 @@
-import { luma } from './image_data.js'
-import { random_int, random_float } from './random.js'
-
+import dither from './random_sample_dither.js'
+import convert_to_grayscale from './grayscale.js'
+import WeightedVoronoi from './weighted_voronoi.js'
 
 let w,
     h,
     grayscale_image,
-    density_map
-
+    points,
+    weighted_voronoi,
+    timeout,
+    fps = 60,
+    avg_dist_cutoff = 0.01,
+    max_iterations = 40,
+    iteration_count,
+    debug = false
 
 onmessage = (e) => {
   console.log(`[image processor] received message ${e.data.cmd}`)
@@ -23,72 +29,34 @@ function process(image_data, num_points) {
   w = image_data.width
   h = image_data.height,
   grayscale_image = convert_to_grayscale(image_data)
-  density_map = build_density_map(grayscale_image, w, h)
+  points = dither(grayscale_image, num_points, w, h)
+  weighted_voronoi = new WeightedVoronoi(grayscale_image, {w, h})
+  iteration_count = 0
 
-  let points = dither(grayscale_image, num_points, w, h)
-
-  console.log("[image processor] done")
   postMessage({
-    cmd: 'dither_points',
+    cmd: 'points',
     points: points
   })
+
+  timeout = setTimeout(relax_points_and_send, 1000 / fps)
 }
 
-function density(y, x1, x2) {
-  return density_map[y][x2 + 1] - density_map[y][x1]
-}
+function relax_points_and_send() {
+  let time_start = Date.now()
+  let { new_points, average_distance } = weighted_voronoi.relax(points)
+  points = new_points
+  iteration_count++
 
-function convert_to_grayscale(image_data) {
-  let w = image_data.width,
-      h = image_data.height
+  postMessage({
+    cmd: 'points',
+    points: points
+  })
 
-  let g_image = new Array(w*h)
-
-  let i = 0
-  for(let x=0; x < w; x++) {
-    for(let y=0; y < h; y++) {
-      g_image[i] = luma(image_data, x, y)
-      i++
-    }
+  let fully_relaxed = iteration_count >= max_iterations || average_distance < avg_dist_cutoff
+  if(!fully_relaxed) {
+    let time_end = Date.now()
+    let elapsed_time = time_end - time_start
+    let interval = Math.max(1, 1000/fps - elapsed_time)
+    timeout = setTimeout(relax_points_and_send, interval)
   }
-
-  return g_image
-}
-
-function build_density_map(grayscale_image, w, h) {
-  let d_map = new Array(h)
-
-  let i=0;
-  for(let y=0; y<h; y++) {
-    let row = [0],
-        sum = 0
-
-    for(let x=0; x<w; x++) {
-      sum += grayscale_image[i]
-      row.push(sum)
-      i++
-    }
-    d_map[y] = row
-  }
-
-  return d_map;
-}
-
-function dither(grayscale_image, num_points, w, h) {
-  let points = []
-
-  while (points.length < num_points) {
-    let i = random_int(0, grayscale_image.length),
-        p = random_float(0, 1),
-        val = grayscale_image[i]
-
-    if (p > val) {
-      let x = i % w,
-          y = Math.floor(i / w)
-
-      points.push([x,y])
-    }
-  }
-
-  return points
 }

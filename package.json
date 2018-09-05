@@ -11,10 +11,17 @@
   "author": "Ryan Schenk",
   "license": "ISC",
   "devDependencies": {
-    "paper": "^0.11.5",
     "webpack": "^4.14.0",
     "webpack-cli": "^3.0.8",
     "webpack-dev-server": "^3.1.4",
     "worker-loader": "^2.0.0"
+  },
+  "dependencies": {
+    "array-bounds": "^1.0.1",
+    "getboundingbox": "^1.0.0",
+    "paper": "^0.11.5",
+    "segseg": "^0.2.2",
+    "strftime": "^0.10.0",
+    "voronoi": "^1.0.0"
   }
 }

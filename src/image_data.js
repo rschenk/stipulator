@@ -5,13 +5,13 @@ export function rgba(image_data, x, y) {
 
 export function luma(image_data, x, y) {
   let [r, g, b, a] = rgba(image_data, x, y)
-  let luminance = (r+r+b+g+g+g) / (6*255)
+  let luminance = (r+r+b+g+g+g) / 6
   return luminance
 }
 
 export function gray(image_data, x, y) {
   let [r, g, b, a] = rgba(image_data, x, y)
-  return (r + g + b) / (3*255)
+  return (r + g + b) / 3
 }
 
 export function indeces(image_data, x, y) {
