@@ -4,6 +4,8 @@ import  { render_tsp } from './tsp.js'
 
 import ImageProcessor from './image_processor.worker.js'
 
+let render_times = []
+
 let url = "/donut.png",
     num_points = 2000,
     dpr = window.devicePixelRatio || 1,
@@ -44,7 +46,8 @@ function raster_loaded() {
 }
 
 function handle_image_processor_message(e) {
-  if (e.data.cmd = "points") {
+  if (e.data.cmd == "points") {
+    let tstart = new Date(), tend
     console.log("[main] Received points from processor")
 
     context.clearRect(0, 0, canvas.width, canvas.height)
@@ -52,6 +55,15 @@ function handle_image_processor_message(e) {
 
     points = e.data.points
     points.map(draw_point)
+
+    tend = new Date()
+
+    render_times.push( tend - tstart )
+  } else if (e.data.cmd == "done") {
+    console.log("[main] Done")
+    let sum = render_times.reduce(function(a, b) { return a + b; });
+    let avg = sum / render_times.length;
+    alert(`[main] Average render time: ${avg}`)
   } else {
     console.log("[main] received unknown message from processor")
     console.log(e)

@@ -58,5 +58,7 @@ function relax_points_and_send() {
     let elapsed_time = time_end - time_start
     let interval = Math.max(1, 1000/fps - elapsed_time)
     timeout = setTimeout(relax_points_and_send, interval)
+  } else {
+    postMessage({ cmd: 'done' })
   }
 }
