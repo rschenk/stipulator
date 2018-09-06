@@ -4,43 +4,54 @@ import  { render_tsp } from './tsp.js'
 
 import ImageProcessor from './image_processor.worker.js'
 
-let w = 800,
-    h = 800,
-    url = "/donut.png",
+let url = "/donut.png",
     num_points = 2000,
+    dpr = window.devicePixelRatio || 1,
+    canvas,
+    context,
     point_group,
     points
 
-setup_paper()
+setup_canvas()
 
 let image_processor = new ImageProcessor()
 image_processor.onmessage = handle_image_processor_message
 
-let raster = new paper.Raster({source: url, position: paper.view.center})
-raster.onLoad = raster_loaded
-
-
+let image = new Image();
+image.onload = raster_loaded
+image.src = url
 
 function raster_loaded() {
   console.log("[main] raster loaded, sending to processor")
-  let image_data = raster.getImageData(raster.bounds)
+
+  canvas.width = image.width
+  canvas.height = image.height
+
+  context.drawImage(image, 0, 0);
+  let image_data = context.getImageData(0, 0, image.width, image.height)
   image_processor.postMessage({
     cmd: 'process',
     image_data: image_data,
     num_points: num_points
   })
+
+  // Set up retina
+  canvas.style.width = canvas.width + "px";
+  canvas.style.height = canvas.height + "px";
+  canvas.width = canvas.width * dpr;
+  canvas.height = canvas.height * dpr;
+  context.scale(dpr, dpr);
 }
 
 function handle_image_processor_message(e) {
   if (e.data.cmd = "points") {
     console.log("[main] Received points from processor")
 
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    context.fillStyle = "#000000"
+
     points = e.data.points
-    raster.visible = false
-    if (point_group) {
-      point_group.remove()
-    }
-    point_group = new paper.Group(points.map(draw_point))
+    points.map(draw_point)
   } else {
     console.log("[main] received unknown message from processor")
     console.log(e)
@@ -48,20 +59,20 @@ function handle_image_processor_message(e) {
 }
 
 function draw_point(point) {
-  return new paper.Path.Circle({
-    center: point,
-    radius: 2,
-    fillColor: "black"
-  })
+  let radius = 2
+  let [x, y] = point
+  context.beginPath()
+  context.arc(x, y, radius, 0, Math.PI * 2, true)
+  context.closePath()
+  context.fill()
 }
 
-function setup_paper() {
+function setup_canvas() {
   let canvas_id = 'stipulator-canvas'
-  document.body.appendChild(canvas_element(canvas_id))
-  paper.install(window)
-  paper.setup(canvas_id)
-  paper.view.viewSize.width = w;
-  paper.view.viewSize.height = h;
+
+  canvas = canvas_element(canvas_id)
+  context = canvas.getContext("2d")
+  document.body.appendChild(canvas)
 
   document.addEventListener("keypress", (e)=>{ cmd_s(e, save_as_tsp) });
 }
@@ -82,10 +93,13 @@ function cmd_s(event, command) {
 }
 
 function save_as_tsp() {
-  let time = strftime('%F-%H-%M')
-  let name = `stipulator_${time}`
-  let filename = `${name}.tsp`
-  let body = render_tsp(points, name, w, h)
+  let w = image.width,
+      h = image.height,
+      time = strftime('%F-%H-%M'),
+      image_basename = image.src.split(/[\\/]/).pop().split(".").shift(),
+      name = `${image_basename}_stpl_${time}`,
+      filename = `${name}.tsp`,
+      body = render_tsp(points, name, w, h)
 
 
   save_file(filename, body)
