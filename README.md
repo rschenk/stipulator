@@ -1,5 +1,5 @@
 # stipulator
-Implementation of weighted voronoi stippling algorithm in Javascript.
+Implementation of weighted voronoi stippling algorithm in Javascript. This algorithm was published by Adrian Secord as part of his masters thesis, a copy of which is in this repo.
 
 ## Installation
 This thing is served by webpack. You'll need a node/npm setup. From there...
