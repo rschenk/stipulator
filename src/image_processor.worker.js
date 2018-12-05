@@ -20,6 +20,9 @@ onmessage = (e) => {
     case 'process':
       process(e.data.image_data, e.data.num_points)
       break
+    case 'reprocess':
+      reprocess(e.data.num_points)
+      break
     default:
       console.log(`[image processor] unknown command: ${e.data.cmd}, data: ${e.data}`)
   }
@@ -38,6 +41,18 @@ function process(image_data, num_points) {
     points: points
   })
 
+  timeout = setTimeout(relax_points_and_send, 1000 / fps)
+}
+
+function reprocess(num_points) {
+  iteration_count = 0
+  points = dither(grayscale_image, num_points, w, h)
+  postMessage({
+    cmd: 'points',
+    points: points
+  })
+
+  if(timeout) { clearTimeout(timeout) }
   timeout = setTimeout(relax_points_and_send, 1000 / fps)
 }
 
